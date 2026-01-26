@@ -15,6 +15,21 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+    
+      - name: Install Make
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make
+
+      - name: Install Go 1.24.6
+        run: |
+          wget https://go.dev/dl/go1.24.6.linux-amd64.tar.gz
+          sudo rm -rf /usr/local/go
+          sudo tar -C /usr/local -xzf go1.24.6.linux-amd64.tar.gz
+          echo "/usr/local/go/bin" >> $GITHUB_PATH
+
+      - name: Check Go version
+        run: go version
 
       - name: Set up Docker
         run: |
@@ -28,4 +43,4 @@ jobs:
         run: docker-compose -f docker-compose.yml up -d mongo
 
       - name: Run Tests
-        run: docker-compose -f docker-compose.yml run test
+        run: make test
