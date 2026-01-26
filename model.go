@@ -36,11 +36,14 @@ type mongodb[T, C any] Model[
 	mongo.Pipeline,
 ]
 
+// DefaultModel is the default MongoDB model type alias.
+type DefaultModel[T, C any] = mongodb[T, C]
+
 // New creates a new MongoDB model bound to a specific collection.
 //
 // A single collection instance is reused, which is cheaper than
 // resolving the collection on every operation.
-func New[T, C any](db *mongo.Database, name string) mongodb[T, C] {
+func New[T, C any](db *mongo.Database, name string) DefaultModel[T, C] {
 	collection := db.Collection(name)
 	return &mongoModel[T, C]{
 		Name:       name,
@@ -92,7 +95,6 @@ func (m *mongoModel[T, C]) FindMany(
 
 	return results, nil
 }
-
 
 // Create inserts a new document into the collection.
 func (m *mongoModel[T, C]) Create(ctx context.Context, v T) error {
@@ -165,7 +167,6 @@ func (m *mongoModel[T, C]) Aggregate(
 
 	return results, nil
 }
-
 
 // Model defines a generic interface for database operations.
 //
