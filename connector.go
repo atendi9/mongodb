@@ -28,6 +28,11 @@ type DatabaseConnector struct {
 	// ClientOptions holds optional client-level configuration.
 	// If provided, it overrides the default options created from the URI.
 	ClientOptions *options.ClientOptions
+
+	// Client holds the underlying MongoDB client instance created during Connect.
+	// It can be used to access client-level operations or to close the connection
+	// when it is no longer needed.
+	Client *mongo.Client
 }
 
 // NewConnector creates a new MongoDB database connector using
@@ -55,7 +60,7 @@ func (c *DatabaseConnector) Connect() (*mongo.Database, error) {
 	if err != nil {
 		return nil, err
 	}
-
+    c.Client = client
 	if c.Options != nil {
 		dbOpts := options.Database()
 		dbOpts.Opts = []func(*options.DatabaseOptions) error{
