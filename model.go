@@ -62,11 +62,7 @@ func (m *mongoModel[T, C]) FindOne(
 	opts ...*options.FindOneOptions,
 ) (T, error) {
 	var result T
-	findOneOpts := options.FindOne()
-	findOneOpts.Opts = []func(*options.FindOneOptions) error{
-		setOptions(opts...),
-	}
-	if err := m.collection.FindOne(ctx, filter, findOneOpts).Decode(&result); err != nil {
+	if err := m.collection.FindOne(ctx, filter, BuildFindOneOptions(opts...)).Decode(&result); err != nil {
 		return result, err
 	}
 	return result, nil
@@ -78,11 +74,7 @@ func (m *mongoModel[T, C]) FindMany(
 	filter any,
 	opts ...*options.FindOptions,
 ) ([]T, error) {
-	findOpts := options.Find()
-	findOpts.Opts = []func(*options.FindOptions) error{
-		setOptions(opts...),
-	}
-	cursor, err := m.collection.Find(ctx, filter, findOpts)
+	cursor, err := m.collection.Find(ctx, filter, BuildFindManyOptions(opts...))
 	if err != nil {
 		return nil, err
 	}
@@ -118,11 +110,7 @@ func (m *mongoModel[T, C]) UpdateOne(
 	update any,
 	opts ...*options.UpdateOneOptions,
 ) error {
-	updateOneOpts := options.UpdateOne()
-	updateOneOpts.Opts = []func(*options.UpdateOneOptions) error{
-		setOptions(opts...),
-	}
-	_, err := m.collection.UpdateOne(ctx, filter, update, updateOneOpts)
+	_, err := m.collection.UpdateOne(ctx, filter, update, BuildUpdateOneOptions(opts...))
 	return err
 }
 
@@ -133,11 +121,7 @@ func (m *mongoModel[T, C]) UpdateMany(
 	update any,
 	opts ...*options.UpdateManyOptions,
 ) error {
-	updateManyOpts := options.UpdateMany()
-	updateManyOpts.Opts = []func(*options.UpdateManyOptions) error{
-		setOptions(opts...),
-	}
-	_, err := m.collection.UpdateMany(ctx, filter, update, updateManyOpts)
+	_, err := m.collection.UpdateMany(ctx, filter, update, BuildUpdateManyOptions(opts...))
 	return err
 }
 
@@ -183,16 +167,6 @@ func (m *mongoModel[T, C]) Aggregate(
 	}
 
 	return results, nil
-}
-
-func setOptions[T any](opts ...*T) func(opts *T) error {
-	fn := func(o *T) error {
-		if len(opts) > 0 {
-			o = opts[0]
-		}
-		return nil
-	}
-	return fn
 }
 
 // Model defines a generic interface for database operations.
