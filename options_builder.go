@@ -8,13 +8,14 @@ func BuildDatabaseOptions(
 	opts *options.DatabaseOptions,
 ) options.Lister[options.DatabaseOptions] {
 	dbOpts := options.Database()
-	return applyOptions(dbOpts,
+	lister := applyOptions(dbOpts,
 		setPtr(opts.BSONOptions, dbOpts.SetBSONOptions),
 		setPtr(opts.ReadConcern, dbOpts.SetReadConcern),
 		setPtr(opts.ReadPreference, dbOpts.SetReadPreference),
 		setPtr(opts.Registry, dbOpts.SetRegistry),
 		setPtr(opts.WriteConcern, dbOpts.SetWriteConcern),
 	)
+	return lister
 }
 
 func BuildFindManyOptions(
@@ -25,7 +26,7 @@ func BuildFindManyOptions(
 		return findOpts
 	}
 	o := opts[0]
-	return applyOptions(findOpts,
+	lister := applyOptions(findOpts,
 		setIf(o.AllowDiskUse, findOpts.SetAllowDiskUse),
 		setIf(o.AllowPartialResults, findOpts.SetAllowPartialResults),
 		setIf(o.BatchSize, findOpts.SetBatchSize),
@@ -44,6 +45,7 @@ func BuildFindManyOptions(
 		setIf(o.CursorType, findOpts.SetCursorType),
 		setPtr(o.Collation, findOpts.SetCollation),
 	)
+	return lister
 }
 
 func BuildFindOneOptions(
@@ -54,7 +56,7 @@ func BuildFindOneOptions(
 		return findOneOpts
 	}
 	o := opts[0]
-	return applyOptions(findOneOpts,
+	lister := applyOptions(findOneOpts,
 		setIf(o.AllowPartialResults, findOneOpts.SetAllowPartialResults),
 		setIf(o.Skip, findOneOpts.SetSkip),
 		setIf(&o.Sort, findOneOpts.SetSort),
@@ -66,6 +68,7 @@ func BuildFindOneOptions(
 		setIf(o.ReturnKey, findOneOpts.SetReturnKey),
 		setPtr(o.Collation, findOneOpts.SetCollation),
 	)
+	return lister
 }
 
 func BuildUpdateOneOptions(
@@ -76,7 +79,7 @@ func BuildUpdateOneOptions(
 		return updateOneOpts
 	}
 	o := opts[0]
-	return applyOptions(updateOneOpts,
+	lister := applyOptions(updateOneOpts,
 		setIf(&o.ArrayFilters, updateOneOpts.SetArrayFilters),
 		setIf(o.BypassDocumentValidation, updateOneOpts.SetBypassDocumentValidation),
 		setIf(&o.Sort, updateOneOpts.SetSort),
@@ -86,6 +89,7 @@ func BuildUpdateOneOptions(
 		setIf(o.Upsert, updateOneOpts.SetUpsert),
 		setPtr(o.Collation, updateOneOpts.SetCollation),
 	)
+	return lister
 }
 
 func BuildUpdateManyOptions(
@@ -96,7 +100,7 @@ func BuildUpdateManyOptions(
 		return updateManyOpts
 	}
 	o := opts[0]
-	return applyOptions(updateManyOpts,
+	lister := applyOptions(updateManyOpts,
 		setIf(&o.ArrayFilters, updateManyOpts.SetArrayFilters),
 		setIf(o.BypassDocumentValidation, updateManyOpts.SetBypassDocumentValidation),
 		setIf(&o.Comment, updateManyOpts.SetComment),
@@ -105,6 +109,7 @@ func BuildUpdateManyOptions(
 		setIf(o.Upsert, updateManyOpts.SetUpsert),
 		setPtr(o.Collation, updateManyOpts.SetCollation),
 	)
+	return lister
 }
 
 func BuildInsertManyOptions(
@@ -115,11 +120,12 @@ func BuildInsertManyOptions(
 		return insertManyOpts
 	}
 	o := opts[0]
-	return applyOptions(insertManyOpts,
+	lister := applyOptions(insertManyOpts,
 		setIf(o.BypassDocumentValidation, insertManyOpts.SetBypassDocumentValidation),
 		setIf(o.Ordered, insertManyOpts.SetOrdered),
 		setIf(&o.Comment, insertManyOpts.SetComment),
 	)
+	return lister
 }
 
 func BuildCountOptions(
@@ -130,13 +136,14 @@ func BuildCountOptions(
 		return countOpts
 	}
 	o := opts[0]
-	return applyOptions(countOpts,
+	lister := applyOptions(countOpts,
 		setIf(o.Limit, countOpts.SetLimit),
 		setIf(o.Skip, countOpts.SetSkip),
 		setIf(&o.Comment, countOpts.SetComment),
 		setIf(&o.Hint, countOpts.SetHint),
 		setPtr(o.Collation, countOpts.SetCollation),
 	)
+	return lister
 }
 
 func BuildDistinctOptions(
@@ -147,11 +154,12 @@ func BuildDistinctOptions(
 		return distinctOpts
 	}
 	o := opts[0]
-	return applyOptions(distinctOpts,
+	lister := applyOptions(distinctOpts,
 		setIf(&o.Comment, distinctOpts.SetComment),
 		setIf(&o.Hint, distinctOpts.SetHint),
 		setPtr(o.Collation, distinctOpts.SetCollation),
 	)
+	return lister
 }
 
 func BuildFindOneAndUpdateOptions(
@@ -162,7 +170,7 @@ func BuildFindOneAndUpdateOptions(
 		return findOneAndUpdateOpts
 	}
 	o := opts[0]
-	return applyOptions(findOneAndUpdateOpts,
+	lister := applyOptions(findOneAndUpdateOpts,
 		setIf(&o.ArrayFilters, findOneAndUpdateOpts.SetArrayFilters),
 		setIf(o.BypassDocumentValidation, findOneAndUpdateOpts.SetBypassDocumentValidation),
 		setIf(o.ReturnDocument, findOneAndUpdateOpts.SetReturnDocument),
@@ -174,6 +182,7 @@ func BuildFindOneAndUpdateOptions(
 		setIf(&o.Let, findOneAndUpdateOpts.SetLet),
 		setPtr(o.Collation, findOneAndUpdateOpts.SetCollation),
 	)
+	return lister
 }
 
 func BuildFindOneAndDeleteOptions(
@@ -184,7 +193,7 @@ func BuildFindOneAndDeleteOptions(
 		return findOneAndDeleteOpts
 	}
 	o := opts[0]
-	return applyOptions(findOneAndDeleteOpts,
+	lister := applyOptions(findOneAndDeleteOpts,
 		setIf(&o.Sort, findOneAndDeleteOpts.SetSort),
 		setIf(&o.Projection, findOneAndDeleteOpts.SetProjection),
 		setIf(&o.Comment, findOneAndDeleteOpts.SetComment),
@@ -192,6 +201,7 @@ func BuildFindOneAndDeleteOptions(
 		setIf(&o.Let, findOneAndDeleteOpts.SetLet),
 		setPtr(o.Collation, findOneAndDeleteOpts.SetCollation),
 	)
+	return lister
 }
 
 func BuildFindOneAndReplaceOptions(
@@ -202,7 +212,7 @@ func BuildFindOneAndReplaceOptions(
 		return findOneAndReplaceOpts
 	}
 	o := opts[0]
-	return applyOptions(findOneAndReplaceOpts,
+	lister := applyOptions(findOneAndReplaceOpts,
 		setIf(o.BypassDocumentValidation, findOneAndReplaceOpts.SetBypassDocumentValidation),
 		setIf(o.ReturnDocument, findOneAndReplaceOpts.SetReturnDocument),
 		setIf(o.Upsert, findOneAndReplaceOpts.SetUpsert),
@@ -213,6 +223,7 @@ func BuildFindOneAndReplaceOptions(
 		setIf(&o.Let, findOneAndReplaceOpts.SetLet),
 		setPtr(o.Collation, findOneAndReplaceOpts.SetCollation),
 	)
+	return lister
 }
 
 // optionMutation applies a single change to an options builder of type O.
