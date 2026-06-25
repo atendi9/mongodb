@@ -8,6 +8,9 @@ func BuildDatabaseOptions(
 	opts *options.DatabaseOptions,
 ) options.Lister[options.DatabaseOptions] {
 	dbOpts := options.Database()
+	if opts == nil {
+		return dbOpts
+	}
 	lister := applyOptions(dbOpts,
 		setPtr(opts.BSONOptions, dbOpts.SetBSONOptions),
 		setPtr(opts.ReadConcern, dbOpts.SetReadConcern),
