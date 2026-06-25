@@ -35,6 +35,12 @@ type mongodb[T, C any] Model[
 	*options.UpdateOneOptions,
 	*options.UpdateManyOptions,
 	mongo.Pipeline,
+	*options.InsertManyOptions,
+	*options.CountOptions,
+	*options.DistinctOptions,
+	*options.FindOneAndUpdateOptions,
+	*options.FindOneAndDeleteOptions,
+	*options.FindOneAndReplaceOptions,
 ]
 
 // DefaultModel is the default MongoDB model type alias.
@@ -169,11 +175,94 @@ func (m *mongoModel[T, C]) Aggregate(
 	return results, nil
 }
 
+// CreateMany inserts multiple documents into the collection in a single
+// operation, which is cheaper than issuing one insert per document.
+func (m *mongoModel[T, C]) CreateMany(
+	ctx context.Context,
+	data []T,
+	opts ...*options.InsertManyOptions,
+) error {
+	docs := make([]any, len(data))
+	for i := range data {
+		docs[i] = data[i]
+	}
+	_, err := m.collection.InsertMany(ctx, docs, BuildInsertManyOptions(opts...))
+	return err
+}
+
+// Count returns the number of documents that match the given filter.
+func (m *mongoModel[T, C]) Count(
+	ctx context.Context,
+	filter any,
+	opts ...*options.CountOptions,
+) (int64, error) {
+	return m.collection.CountDocuments(ctx, filter, BuildCountOptions(opts...))
+}
+
+// Distinct returns the distinct values for the given field across all
+// documents that match the filter.
+func (m *mongoModel[T, C]) Distinct(
+	ctx context.Context,
+	fieldName string,
+	filter any,
+	opts ...*options.DistinctOptions,
+) ([]any, error) {
+	var results []any
+	if err := m.collection.Distinct(ctx, fieldName, filter, BuildDistinctOptions(opts...)).Decode(&results); err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+// FindOneAndUpdate atomically updates a single document that matches the
+// filter and returns the resulting document decoded into T.
+func (m *mongoModel[T, C]) FindOneAndUpdate(
+	ctx context.Context,
+	filter any,
+	update any,
+	opts ...*options.FindOneAndUpdateOptions,
+) (T, error) {
+	var result T
+	if err := m.collection.FindOneAndUpdate(ctx, filter, update, BuildFindOneAndUpdateOptions(opts...)).Decode(&result); err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+// FindOneAndDelete atomically deletes a single document that matches the
+// filter and returns the deleted document decoded into T.
+func (m *mongoModel[T, C]) FindOneAndDelete(
+	ctx context.Context,
+	filter any,
+	opts ...*options.FindOneAndDeleteOptions,
+) (T, error) {
+	var result T
+	if err := m.collection.FindOneAndDelete(ctx, filter, BuildFindOneAndDeleteOptions(opts...)).Decode(&result); err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+// FindOneAndReplace atomically replaces a single document that matches the
+// filter and returns the affected document decoded into T.
+func (m *mongoModel[T, C]) FindOneAndReplace(
+	ctx context.Context,
+	filter any,
+	replacement T,
+	opts ...*options.FindOneAndReplaceOptions,
+) (T, error) {
+	var result T
+	if err := m.collection.FindOneAndReplace(ctx, filter, replacement, BuildFindOneAndReplaceOptions(opts...)).Decode(&result); err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
 // Model defines a generic interface for database operations.
 //
 // Generics provide compile-time safety and remove the need for
 // interface{} casting, which improves readability and performance.
-type Model[T, C, D, FO, FMO, UO, UM, P any] interface {
+type Model[T, C, D, FO, FMO, UO, UM, P, IMO, CO, DO, FOU, FOD, FOR any] interface {
 
 	// FindOne finds a single document that matches the filter.
 	FindOne(ctx context.Context, filter D, options ...FO) (T, error)
@@ -183,6 +272,9 @@ type Model[T, C, D, FO, FMO, UO, UM, P any] interface {
 
 	// Create inserts a new document.
 	Create(ctx context.Context, data T) error
+
+	// CreateMany inserts multiple documents in a single operation.
+	CreateMany(ctx context.Context, data []T, options ...IMO) error
 
 	// UpdateOne updates a single document that matches the filter.
 	UpdateOne(ctx context.Context, filter D, data D, options ...UO) error
@@ -195,6 +287,22 @@ type Model[T, C, D, FO, FMO, UO, UM, P any] interface {
 
 	// DeleteMany deletes all documents that match the filter.
 	DeleteMany(ctx context.Context, filter D) error
+
+	// Count returns the number of documents that match the filter.
+	Count(ctx context.Context, filter D, options ...CO) (int64, error)
+
+	// Distinct returns the distinct values for a field across documents
+	// that match the filter.
+	Distinct(ctx context.Context, fieldName string, filter D, options ...DO) ([]any, error)
+
+	// FindOneAndUpdate atomically updates a single document and returns it.
+	FindOneAndUpdate(ctx context.Context, filter D, update D, options ...FOU) (T, error)
+
+	// FindOneAndDelete atomically deletes a single document and returns it.
+	FindOneAndDelete(ctx context.Context, filter D, options ...FOD) (T, error)
+
+	// FindOneAndReplace atomically replaces a single document and returns it.
+	FindOneAndReplace(ctx context.Context, filter D, replacement T, options ...FOR) (T, error)
 
 	// Aggregate executes an aggregation pipeline and returns custom results.
 	Aggregate(ctx context.Context, pipeline P) ([]C, error)
