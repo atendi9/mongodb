@@ -282,6 +282,104 @@ func TestMongoModel(t *testing.T) {
 		}
 	})
 
+	t.Run("CreateMany and Count", func(t *testing.T) {
+		_ = db.Collection("people").Drop(ctx)
+		peopleModel := New[testUser, testUser](db, "people")
+
+		err := peopleModel.CreateMany(ctx, []testUser{
+			{ID: "p1", Name: "Carol", Email: "carol@test.com", Age: 28, Position: "Dev"},
+			{ID: "p2", Name: "Dave", Email: "dave@test.com", Age: 40, Position: "Dev"},
+			{ID: "p3", Name: "Erin", Email: "erin@test.com", Age: 22, Position: "QA"},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		total, err := peopleModel.Count(ctx, map[string]any{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if total != 3 {
+			t.Fatalf("expected 3, got %d", total)
+		}
+
+		devs, err := peopleModel.Count(ctx, map[string]any{"position": "Dev"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if devs != 2 {
+			t.Fatalf("expected 2 devs, got %d", devs)
+		}
+	})
+
+	t.Run("Distinct", func(t *testing.T) {
+		peopleModel := New[testUser, testUser](db, "people")
+
+		positions, err := peopleModel.Distinct(ctx, "position", map[string]any{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(positions) != 2 {
+			t.Fatalf("expected 2 distinct positions, got %d: %v", len(positions), positions)
+		}
+	})
+
+	t.Run("FindOneAndUpdate", func(t *testing.T) {
+		peopleModel := New[testUser, testUser](db, "people")
+
+		after := options.After
+		updated, err := peopleModel.FindOneAndUpdate(
+			ctx,
+			map[string]any{"_id": "p1"},
+			map[string]any{"$set": map[string]any{"age": 29}},
+			&options.FindOneAndUpdateOptions{ReturnDocument: &after},
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if updated.Age != 29 {
+			t.Fatalf("expected returned doc age 29, got %d", updated.Age)
+		}
+	})
+
+	t.Run("FindOneAndReplace", func(t *testing.T) {
+		peopleModel := New[testUser, testUser](db, "people")
+
+		after := options.After
+		replaced, err := peopleModel.FindOneAndReplace(
+			ctx,
+			map[string]any{"_id": "p2"},
+			testUser{ID: "p2", Name: "David", Email: "david@test.com", Age: 41, Position: "Lead"},
+			&options.FindOneAndReplaceOptions{ReturnDocument: &after},
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if replaced.Name != "David" || replaced.Position != "Lead" {
+			t.Fatalf("unexpected replaced doc %+v", replaced)
+		}
+	})
+
+	t.Run("FindOneAndDelete", func(t *testing.T) {
+		peopleModel := New[testUser, testUser](db, "people")
+
+		deleted, err := peopleModel.FindOneAndDelete(ctx, map[string]any{"_id": "p3"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if deleted.Name != "Erin" {
+			t.Fatalf("expected Erin, got %s", deleted.Name)
+		}
+
+		remaining, err := peopleModel.Count(ctx, map[string]any{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if remaining != 2 {
+			t.Fatalf("expected 2 remaining, got %d", remaining)
+		}
+	})
+
 	t.Run("DeleteOne", func(t *testing.T) {
 		err := model.DeleteOne(ctx, map[string]any{"email": "alice@test.com"})
 		if err != nil {
