@@ -8,231 +8,242 @@ func BuildDatabaseOptions(
 	opts *options.DatabaseOptions,
 ) options.Lister[options.DatabaseOptions] {
 	dbOpts := options.Database()
-	if opts.BSONOptions != nil {
-		dbOpts = dbOpts.SetBSONOptions(opts.BSONOptions)
-	}
-	if opts.ReadConcern != nil {
-		dbOpts = dbOpts.SetReadConcern(opts.ReadConcern)
-	}
-	if opts.ReadPreference != nil {
-		dbOpts = dbOpts.SetReadPreference(opts.ReadPreference)
-	}
-	if opts.Registry != nil {
-		dbOpts = dbOpts.SetRegistry(opts.Registry)
-	}
-	if opts.WriteConcern != nil {
-		dbOpts = dbOpts.SetWriteConcern(opts.WriteConcern)
-	}
-	return dbOpts
+	return applyOptions(dbOpts,
+		setPtr(opts.BSONOptions, dbOpts.SetBSONOptions),
+		setPtr(opts.ReadConcern, dbOpts.SetReadConcern),
+		setPtr(opts.ReadPreference, dbOpts.SetReadPreference),
+		setPtr(opts.Registry, dbOpts.SetRegistry),
+		setPtr(opts.WriteConcern, dbOpts.SetWriteConcern),
+	)
 }
 
 func BuildFindManyOptions(
 	opts ...*options.FindOptions,
 ) options.Lister[options.FindOptions] {
 	findOpts := options.Find()
-	if len(opts) > 0 {
-		opts := opts[0]
-		findOpts = setOption(findOpts, opts.AllowDiskUse, findOpts.SetAllowDiskUse)
-		findOpts = setOption(findOpts, opts.AllowPartialResults, findOpts.SetAllowPartialResults)
-		findOpts = setOption(findOpts, opts.BatchSize, findOpts.SetBatchSize)
-		findOpts = setOption(findOpts, opts.Limit, findOpts.SetLimit)
-		findOpts = setOption(findOpts, opts.Skip, findOpts.SetSkip)
-		findOpts = setOption(findOpts, opts.MaxAwaitTime, findOpts.SetMaxAwaitTime)
-		findOpts = setOption(findOpts, opts.NoCursorTimeout, findOpts.SetNoCursorTimeout)
-		findOpts = setOption(findOpts, &opts.Sort, findOpts.SetSort)
-		findOpts = setOption(findOpts, &opts.Comment, findOpts.SetComment)
-		findOpts = setOption(findOpts, &opts.Hint, findOpts.SetHint)
-		findOpts = setOption(findOpts, &opts.Let, findOpts.SetLet)
-		findOpts = setOption(findOpts, &opts.Max, findOpts.SetMax)
-		findOpts = setOption(findOpts, &opts.Min, findOpts.SetMin)
-		findOpts = setOption(findOpts, &opts.Projection, findOpts.SetProjection)
-		findOpts = setOption(findOpts, opts.ReturnKey, findOpts.SetReturnKey)
-		if opts.Collation != nil {
-			findOpts = findOpts.SetCollation(opts.Collation)
-		}
-		if opts.CursorType != nil {
-			findOpts = findOpts.SetCursorType(*opts.CursorType)
-		}
+	if len(opts) == 0 {
+		return findOpts
 	}
-	return findOpts
+	o := opts[0]
+	return applyOptions(findOpts,
+		setIf(o.AllowDiskUse, findOpts.SetAllowDiskUse),
+		setIf(o.AllowPartialResults, findOpts.SetAllowPartialResults),
+		setIf(o.BatchSize, findOpts.SetBatchSize),
+		setIf(o.Limit, findOpts.SetLimit),
+		setIf(o.Skip, findOpts.SetSkip),
+		setIf(o.MaxAwaitTime, findOpts.SetMaxAwaitTime),
+		setIf(o.NoCursorTimeout, findOpts.SetNoCursorTimeout),
+		setIf(&o.Sort, findOpts.SetSort),
+		setIf(&o.Comment, findOpts.SetComment),
+		setIf(&o.Hint, findOpts.SetHint),
+		setIf(&o.Let, findOpts.SetLet),
+		setIf(&o.Max, findOpts.SetMax),
+		setIf(&o.Min, findOpts.SetMin),
+		setIf(&o.Projection, findOpts.SetProjection),
+		setIf(o.ReturnKey, findOpts.SetReturnKey),
+		setIf(o.CursorType, findOpts.SetCursorType),
+		setPtr(o.Collation, findOpts.SetCollation),
+	)
 }
 
 func BuildFindOneOptions(
 	opts ...*options.FindOneOptions,
 ) options.Lister[options.FindOneOptions] {
 	findOneOpts := options.FindOne()
-	if len(opts) > 0 {
-		opts := opts[0]
-		findOneOpts = setOption(findOneOpts, opts.AllowPartialResults, findOneOpts.SetAllowPartialResults)
-		findOneOpts = setOption(findOneOpts, opts.Skip, findOneOpts.SetSkip)
-		findOneOpts = setOption(findOneOpts, &opts.Sort, findOneOpts.SetSort)
-		findOneOpts = setOption(findOneOpts, &opts.Comment, findOneOpts.SetComment)
-		findOneOpts = setOption(findOneOpts, &opts.Hint, findOneOpts.SetHint)
-		findOneOpts = setOption(findOneOpts, &opts.Max, findOneOpts.SetMax)
-		findOneOpts = setOption(findOneOpts, &opts.Min, findOneOpts.SetMin)
-		findOneOpts = setOption(findOneOpts, &opts.Projection, findOneOpts.SetProjection)
-		findOneOpts = setOption(findOneOpts, opts.ReturnKey, findOneOpts.SetReturnKey)
-		if opts.Collation != nil {
-			findOneOpts = findOneOpts.SetCollation(opts.Collation)
-		}
+	if len(opts) == 0 {
+		return findOneOpts
 	}
-	return findOneOpts
+	o := opts[0]
+	return applyOptions(findOneOpts,
+		setIf(o.AllowPartialResults, findOneOpts.SetAllowPartialResults),
+		setIf(o.Skip, findOneOpts.SetSkip),
+		setIf(&o.Sort, findOneOpts.SetSort),
+		setIf(&o.Comment, findOneOpts.SetComment),
+		setIf(&o.Hint, findOneOpts.SetHint),
+		setIf(&o.Max, findOneOpts.SetMax),
+		setIf(&o.Min, findOneOpts.SetMin),
+		setIf(&o.Projection, findOneOpts.SetProjection),
+		setIf(o.ReturnKey, findOneOpts.SetReturnKey),
+		setPtr(o.Collation, findOneOpts.SetCollation),
+	)
 }
 
 func BuildUpdateOneOptions(
 	opts ...*options.UpdateOneOptions,
 ) options.Lister[options.UpdateOneOptions] {
 	updateOneOpts := options.UpdateOne()
-	if len(opts) > 0 {
-		opts := opts[0]
-		updateOneOpts = setOption(updateOneOpts, &opts.ArrayFilters, updateOneOpts.SetArrayFilters)
-		updateOneOpts = setOption(updateOneOpts, opts.BypassDocumentValidation, updateOneOpts.SetBypassDocumentValidation)
-		updateOneOpts = setOption(updateOneOpts, &opts.Sort, updateOneOpts.SetSort)
-		updateOneOpts = setOption(updateOneOpts, &opts.Comment, updateOneOpts.SetComment)
-		updateOneOpts = setOption(updateOneOpts, &opts.Hint, updateOneOpts.SetHint)
-		updateOneOpts = setOption(updateOneOpts, &opts.Let, updateOneOpts.SetLet)
-		updateOneOpts = setOption(updateOneOpts, opts.Upsert, updateOneOpts.SetUpsert)
-		if opts.Collation != nil {
-			updateOneOpts = updateOneOpts.SetCollation(opts.Collation)
-		}
+	if len(opts) == 0 {
+		return updateOneOpts
 	}
-
-	return updateOneOpts
+	o := opts[0]
+	return applyOptions(updateOneOpts,
+		setIf(&o.ArrayFilters, updateOneOpts.SetArrayFilters),
+		setIf(o.BypassDocumentValidation, updateOneOpts.SetBypassDocumentValidation),
+		setIf(&o.Sort, updateOneOpts.SetSort),
+		setIf(&o.Comment, updateOneOpts.SetComment),
+		setIf(&o.Hint, updateOneOpts.SetHint),
+		setIf(&o.Let, updateOneOpts.SetLet),
+		setIf(o.Upsert, updateOneOpts.SetUpsert),
+		setPtr(o.Collation, updateOneOpts.SetCollation),
+	)
 }
 
 func BuildUpdateManyOptions(
 	opts ...*options.UpdateManyOptions,
 ) options.Lister[options.UpdateManyOptions] {
 	updateManyOpts := options.UpdateMany()
-	if len(opts) > 0 {
-		opts := opts[0]
-		updateManyOpts = setOption(updateManyOpts, &opts.ArrayFilters, updateManyOpts.SetArrayFilters)
-		updateManyOpts = setOption(updateManyOpts, opts.BypassDocumentValidation, updateManyOpts.SetBypassDocumentValidation)
-		updateManyOpts = setOption(updateManyOpts, &opts.Comment, updateManyOpts.SetComment)
-		updateManyOpts = setOption(updateManyOpts, &opts.Hint, updateManyOpts.SetHint)
-		updateManyOpts = setOption(updateManyOpts, &opts.Let, updateManyOpts.SetLet)
-		updateManyOpts = setOption(updateManyOpts, opts.Upsert, updateManyOpts.SetUpsert)
-		if opts.Collation != nil {
-			updateManyOpts = updateManyOpts.SetCollation(opts.Collation)
-		}
-
+	if len(opts) == 0 {
+		return updateManyOpts
 	}
-	return updateManyOpts
+	o := opts[0]
+	return applyOptions(updateManyOpts,
+		setIf(&o.ArrayFilters, updateManyOpts.SetArrayFilters),
+		setIf(o.BypassDocumentValidation, updateManyOpts.SetBypassDocumentValidation),
+		setIf(&o.Comment, updateManyOpts.SetComment),
+		setIf(&o.Hint, updateManyOpts.SetHint),
+		setIf(&o.Let, updateManyOpts.SetLet),
+		setIf(o.Upsert, updateManyOpts.SetUpsert),
+		setPtr(o.Collation, updateManyOpts.SetCollation),
+	)
 }
 
 func BuildInsertManyOptions(
 	opts ...*options.InsertManyOptions,
 ) options.Lister[options.InsertManyOptions] {
 	insertManyOpts := options.InsertMany()
-	if len(opts) > 0 {
-		opts := opts[0]
-		insertManyOpts = setOption(insertManyOpts, opts.BypassDocumentValidation, insertManyOpts.SetBypassDocumentValidation)
-		insertManyOpts = setOption(insertManyOpts, opts.Ordered, insertManyOpts.SetOrdered)
-		insertManyOpts = setOption(insertManyOpts, &opts.Comment, insertManyOpts.SetComment)
+	if len(opts) == 0 {
+		return insertManyOpts
 	}
-	return insertManyOpts
+	o := opts[0]
+	return applyOptions(insertManyOpts,
+		setIf(o.BypassDocumentValidation, insertManyOpts.SetBypassDocumentValidation),
+		setIf(o.Ordered, insertManyOpts.SetOrdered),
+		setIf(&o.Comment, insertManyOpts.SetComment),
+	)
 }
 
 func BuildCountOptions(
 	opts ...*options.CountOptions,
 ) options.Lister[options.CountOptions] {
 	countOpts := options.Count()
-	if len(opts) > 0 {
-		opts := opts[0]
-		countOpts = setOption(countOpts, opts.Limit, countOpts.SetLimit)
-		countOpts = setOption(countOpts, opts.Skip, countOpts.SetSkip)
-		countOpts = setOption(countOpts, &opts.Comment, countOpts.SetComment)
-		countOpts = setOption(countOpts, &opts.Hint, countOpts.SetHint)
-		if opts.Collation != nil {
-			countOpts = countOpts.SetCollation(opts.Collation)
-		}
+	if len(opts) == 0 {
+		return countOpts
 	}
-	return countOpts
+	o := opts[0]
+	return applyOptions(countOpts,
+		setIf(o.Limit, countOpts.SetLimit),
+		setIf(o.Skip, countOpts.SetSkip),
+		setIf(&o.Comment, countOpts.SetComment),
+		setIf(&o.Hint, countOpts.SetHint),
+		setPtr(o.Collation, countOpts.SetCollation),
+	)
 }
 
 func BuildDistinctOptions(
 	opts ...*options.DistinctOptions,
 ) options.Lister[options.DistinctOptions] {
 	distinctOpts := options.Distinct()
-	if len(opts) > 0 {
-		opts := opts[0]
-		distinctOpts = setOption(distinctOpts, &opts.Comment, distinctOpts.SetComment)
-		distinctOpts = setOption(distinctOpts, &opts.Hint, distinctOpts.SetHint)
-		if opts.Collation != nil {
-			distinctOpts = distinctOpts.SetCollation(opts.Collation)
-		}
+	if len(opts) == 0 {
+		return distinctOpts
 	}
-	return distinctOpts
+	o := opts[0]
+	return applyOptions(distinctOpts,
+		setIf(&o.Comment, distinctOpts.SetComment),
+		setIf(&o.Hint, distinctOpts.SetHint),
+		setPtr(o.Collation, distinctOpts.SetCollation),
+	)
 }
 
 func BuildFindOneAndUpdateOptions(
 	opts ...*options.FindOneAndUpdateOptions,
 ) options.Lister[options.FindOneAndUpdateOptions] {
 	findOneAndUpdateOpts := options.FindOneAndUpdate()
-	if len(opts) > 0 {
-		opts := opts[0]
-		findOneAndUpdateOpts = setOption(findOneAndUpdateOpts, &opts.ArrayFilters, findOneAndUpdateOpts.SetArrayFilters)
-		findOneAndUpdateOpts = setOption(findOneAndUpdateOpts, opts.BypassDocumentValidation, findOneAndUpdateOpts.SetBypassDocumentValidation)
-		findOneAndUpdateOpts = setOption(findOneAndUpdateOpts, opts.ReturnDocument, findOneAndUpdateOpts.SetReturnDocument)
-		findOneAndUpdateOpts = setOption(findOneAndUpdateOpts, opts.Upsert, findOneAndUpdateOpts.SetUpsert)
-		findOneAndUpdateOpts = setOption(findOneAndUpdateOpts, &opts.Sort, findOneAndUpdateOpts.SetSort)
-		findOneAndUpdateOpts = setOption(findOneAndUpdateOpts, &opts.Projection, findOneAndUpdateOpts.SetProjection)
-		findOneAndUpdateOpts = setOption(findOneAndUpdateOpts, &opts.Comment, findOneAndUpdateOpts.SetComment)
-		findOneAndUpdateOpts = setOption(findOneAndUpdateOpts, &opts.Hint, findOneAndUpdateOpts.SetHint)
-		findOneAndUpdateOpts = setOption(findOneAndUpdateOpts, &opts.Let, findOneAndUpdateOpts.SetLet)
-		if opts.Collation != nil {
-			findOneAndUpdateOpts = findOneAndUpdateOpts.SetCollation(opts.Collation)
-		}
+	if len(opts) == 0 {
+		return findOneAndUpdateOpts
 	}
-	return findOneAndUpdateOpts
+	o := opts[0]
+	return applyOptions(findOneAndUpdateOpts,
+		setIf(&o.ArrayFilters, findOneAndUpdateOpts.SetArrayFilters),
+		setIf(o.BypassDocumentValidation, findOneAndUpdateOpts.SetBypassDocumentValidation),
+		setIf(o.ReturnDocument, findOneAndUpdateOpts.SetReturnDocument),
+		setIf(o.Upsert, findOneAndUpdateOpts.SetUpsert),
+		setIf(&o.Sort, findOneAndUpdateOpts.SetSort),
+		setIf(&o.Projection, findOneAndUpdateOpts.SetProjection),
+		setIf(&o.Comment, findOneAndUpdateOpts.SetComment),
+		setIf(&o.Hint, findOneAndUpdateOpts.SetHint),
+		setIf(&o.Let, findOneAndUpdateOpts.SetLet),
+		setPtr(o.Collation, findOneAndUpdateOpts.SetCollation),
+	)
 }
 
 func BuildFindOneAndDeleteOptions(
 	opts ...*options.FindOneAndDeleteOptions,
 ) options.Lister[options.FindOneAndDeleteOptions] {
 	findOneAndDeleteOpts := options.FindOneAndDelete()
-	if len(opts) > 0 {
-		opts := opts[0]
-		findOneAndDeleteOpts = setOption(findOneAndDeleteOpts, &opts.Sort, findOneAndDeleteOpts.SetSort)
-		findOneAndDeleteOpts = setOption(findOneAndDeleteOpts, &opts.Projection, findOneAndDeleteOpts.SetProjection)
-		findOneAndDeleteOpts = setOption(findOneAndDeleteOpts, &opts.Comment, findOneAndDeleteOpts.SetComment)
-		findOneAndDeleteOpts = setOption(findOneAndDeleteOpts, &opts.Hint, findOneAndDeleteOpts.SetHint)
-		findOneAndDeleteOpts = setOption(findOneAndDeleteOpts, &opts.Let, findOneAndDeleteOpts.SetLet)
-		if opts.Collation != nil {
-			findOneAndDeleteOpts = findOneAndDeleteOpts.SetCollation(opts.Collation)
-		}
+	if len(opts) == 0 {
+		return findOneAndDeleteOpts
 	}
-	return findOneAndDeleteOpts
+	o := opts[0]
+	return applyOptions(findOneAndDeleteOpts,
+		setIf(&o.Sort, findOneAndDeleteOpts.SetSort),
+		setIf(&o.Projection, findOneAndDeleteOpts.SetProjection),
+		setIf(&o.Comment, findOneAndDeleteOpts.SetComment),
+		setIf(&o.Hint, findOneAndDeleteOpts.SetHint),
+		setIf(&o.Let, findOneAndDeleteOpts.SetLet),
+		setPtr(o.Collation, findOneAndDeleteOpts.SetCollation),
+	)
 }
 
 func BuildFindOneAndReplaceOptions(
 	opts ...*options.FindOneAndReplaceOptions,
 ) options.Lister[options.FindOneAndReplaceOptions] {
 	findOneAndReplaceOpts := options.FindOneAndReplace()
-	if len(opts) > 0 {
-		opts := opts[0]
-		findOneAndReplaceOpts = setOption(findOneAndReplaceOpts, opts.BypassDocumentValidation, findOneAndReplaceOpts.SetBypassDocumentValidation)
-		findOneAndReplaceOpts = setOption(findOneAndReplaceOpts, opts.ReturnDocument, findOneAndReplaceOpts.SetReturnDocument)
-		findOneAndReplaceOpts = setOption(findOneAndReplaceOpts, opts.Upsert, findOneAndReplaceOpts.SetUpsert)
-		findOneAndReplaceOpts = setOption(findOneAndReplaceOpts, &opts.Sort, findOneAndReplaceOpts.SetSort)
-		findOneAndReplaceOpts = setOption(findOneAndReplaceOpts, &opts.Projection, findOneAndReplaceOpts.SetProjection)
-		findOneAndReplaceOpts = setOption(findOneAndReplaceOpts, &opts.Comment, findOneAndReplaceOpts.SetComment)
-		findOneAndReplaceOpts = setOption(findOneAndReplaceOpts, &opts.Hint, findOneAndReplaceOpts.SetHint)
-		findOneAndReplaceOpts = setOption(findOneAndReplaceOpts, &opts.Let, findOneAndReplaceOpts.SetLet)
-		if opts.Collation != nil {
-			findOneAndReplaceOpts = findOneAndReplaceOpts.SetCollation(opts.Collation)
-		}
+	if len(opts) == 0 {
+		return findOneAndReplaceOpts
 	}
-	return findOneAndReplaceOpts
+	o := opts[0]
+	return applyOptions(findOneAndReplaceOpts,
+		setIf(o.BypassDocumentValidation, findOneAndReplaceOpts.SetBypassDocumentValidation),
+		setIf(o.ReturnDocument, findOneAndReplaceOpts.SetReturnDocument),
+		setIf(o.Upsert, findOneAndReplaceOpts.SetUpsert),
+		setIf(&o.Sort, findOneAndReplaceOpts.SetSort),
+		setIf(&o.Projection, findOneAndReplaceOpts.SetProjection),
+		setIf(&o.Comment, findOneAndReplaceOpts.SetComment),
+		setIf(&o.Hint, findOneAndReplaceOpts.SetHint),
+		setIf(&o.Let, findOneAndReplaceOpts.SetLet),
+		setPtr(o.Collation, findOneAndReplaceOpts.SetCollation),
+	)
 }
 
-func setOption[O any, V any](
-	builder *O,
-	value *V,
-	set func(V) *O,
-) *O {
-	if value != nil {
-		return set(*value)
+// optionMutation applies a single change to an options builder of type O.
+type optionMutation[O any] func(*O) *O
+
+// setIf returns a mutation that dereferences value and calls setter only when
+// value is non-nil.
+func setIf[O, V any](value *V, setter func(V) *O) optionMutation[O] {
+	return func(builder *O) *O {
+		if value == nil {
+			return builder
+		}
+		return setter(*value)
 	}
-	return builder
+}
+
+// setPtr returns a mutation for setters that already accept a pointer, applying
+// it only when value is non-nil.
+func setPtr[O, V any](value *V, setter func(*V) *O) optionMutation[O] {
+	return func(builder *O) *O {
+		if value == nil {
+			return builder
+		}
+		return setter(value)
+	}
+}
+
+// applyOptions runs each mutation in order over the base builder.
+func applyOptions[O any](base *O, mutations ...optionMutation[O]) *O {
+	for _, mutate := range mutations {
+		base = mutate(base)
+	}
+	return base
 }
