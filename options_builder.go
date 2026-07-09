@@ -21,6 +21,33 @@ func BuildDatabaseOptions(
 	return lister
 }
 
+// BuildClientOptions builds the client-level options used to connect to
+// MongoDB, starting from the connection URI and layering any explicitly
+// provided overrides on top.
+//
+// It exposes the adaptive-retry features added in the v2.6/v2.7 driver
+// (MaxAdaptiveRetries and EnableOverloadRetargeting), which let the driver
+// automatically retry operations that fail with a server-side overload error,
+// alongside the common RetryWrites/RetryReads/AppName toggles.
+//
+// The returned value is ready to be passed directly to mongo.Connect.
+func BuildClientOptions(
+	uri string,
+	opts *options.ClientOptions,
+) *options.ClientOptions {
+	base := options.Client().ApplyURI(uri)
+	if opts == nil {
+		return base
+	}
+	return applyOptions(base,
+		setIf(opts.MaxAdaptiveRetries, base.SetMaxAdaptiveRetries),
+		setIf(opts.EnableOverloadRetargeting, base.SetEnableOverloadRetargeting),
+		setIf(opts.RetryWrites, base.SetRetryWrites),
+		setIf(opts.RetryReads, base.SetRetryReads),
+		setIf(opts.AppName, base.SetAppName),
+	)
+}
+
 func BuildFindManyOptions(
 	opts ...*options.FindOptions,
 ) options.Lister[options.FindOptions] {

@@ -2,7 +2,7 @@ module github.com/atendi9/mongodb/v2
 
 go 1.24.6
 
-require go.mongodb.org/mongo-driver/v2 v2.5.0
+require go.mongodb.org/mongo-driver/v2 v2.7.0
 
 require (
 	github.com/klauspost/compress v1.17.6 // indirect

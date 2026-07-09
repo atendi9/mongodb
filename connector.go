@@ -27,6 +27,10 @@ type DatabaseConnector struct {
 
 	// ClientOptions holds optional client-level configuration.
 	// If provided, it overrides the default options created from the URI.
+	//
+	// It also carries the adaptive-retry features introduced in the v2.6/v2.7
+	// driver (MaxAdaptiveRetries and EnableOverloadRetargeting); see
+	// BuildClientOptions for a helper that layers these on top of a URI.
 	ClientOptions *options.ClientOptions
 
 	// Client holds the underlying MongoDB client instance created during Connect.
